@@ -1,0 +1,9 @@
+stuff
+dist/data
+data
+*__pycache__
+*.pyc
+test.xml
+*.spec
+build
+.idea
