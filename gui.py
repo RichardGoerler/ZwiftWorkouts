@@ -210,16 +210,17 @@ class GUI:
         else:
             write_path = self.workout_path / (self.filename + '.zwo')
             if write_path.exists():
-                if messagebox.askokcancel(self.lang.ASK_OVERWRITE_TITLE, self.lang.ASK_OVERWRITE.format(write_path.name)):
-                    xml_writer.xml_to_file(self.xml_data, write_path)
+                if not messagebox.askokcancel(self.lang.ASK_OVERWRITE_TITLE, self.lang.ASK_OVERWRITE.format(write_path.name)):
+                    return
+            xml_writer.xml_to_file(self.xml_data, write_path)
 
-                    write_path_data = self.data_path / (self.filename + '.txt')
-                    with open(write_path_data, 'w') as f:
-                        f.write(self.workout_lines_raw)
+            write_path_data = self.data_path / (self.filename + '.txt')
+            with open(write_path_data, 'w') as f:
+                f.write(self.workout_lines_raw)
 
-                    self.xml_data = None
+            self.xml_data = None
 
-                    messagebox.showinfo(title=self.lang.SAVE_SUCCESS_TITLE, message=self.lang.SAVE_SUCCESS)
+            messagebox.showinfo(title=self.lang.SAVE_SUCCESS_TITLE, message=self.lang.SAVE_SUCCESS)
 
     def open_workouts(self):
         os.startfile(self.workout_path)
