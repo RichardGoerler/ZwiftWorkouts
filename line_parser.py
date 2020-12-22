@@ -11,6 +11,7 @@ re_mult = re.compile(r'^\s*([1-9])\s*[xX*]\s*$')
 # LINES = '10 minuten 40 -80%\n 1 Minute 110% \n 3 Minuten 60 % \n3x {\n3x { 10 Sekunden 200%\n 1:50 100%\n 2 Minuten 40%}\n 7 Minuten 40%}\n5 Minuten 40-20%'.splitlines()
 LINES = '10 minuten 40 -80%\n 1 Minute 110% \n 3 Minuten 60 % \n3x (\n3x ( 3 Minuten 100%\n 3 Minuten 80% )\n 5 Minuten 40%)\n5 Minuten 40-20%'.splitlines()
 
+
 def parse_wattage_string(s):
     if '%' in s:
         s = s.split('%')[0].strip()

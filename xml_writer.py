@@ -86,6 +86,14 @@ def xml_to_file(xml_el, filename):
         f.write(str_data)
 
 
+def get_name_and_description_from_xml(file_path):
+    tree = ET.parse(str(file_path))
+    root = tree.getroot()
+    name = root.find('name').text
+    description = root.find('description').text
+    return name, description
+
+
 if __name__ == '__main__':
     # create a new XML file with the results
     parsed_lines = line_parser.parse_lines(LINES)
