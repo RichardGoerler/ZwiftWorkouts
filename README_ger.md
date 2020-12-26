@@ -16,9 +16,10 @@ Ein Intervall besteht aus
 
 Falls das Intervall ein Aufwärmen- / Abkühlen-Intervall ist, kann es zwei Intensitätsangaben beinhalten, getrennt durch ein Minus oder einen Pfeil: z.B. ```25%-75%```.
 
-Wiederholung von Intervallen, indem Klammern ```()``` oder ```[]``` oder ```{}``` darum geschrieben werden und ein Multiplikator ```3x``` oder ```4X``` oder ```5*```, etc. davor. 
+Wiederholung von Intervallen, indem Klammern ```()``` oder ```[]``` oder ```{}``` darum geschrieben werden
+ und ein Multiplikator ```3x``` oder ```4X``` oder ```5*```, etc. direkt vor die öffnende Klammer. 
 
-Wiederholungen können verschachtelt sein, wie z.B. ```2x { 3x ( ... ) ... }```.
+Wiederholungen können verschachtelt sein, wie z.B. ```2x { 3x ( ... ) ... }``` (hier fehlen die notwendigen Zeilenumbrüche).
 
 ## Funktionen
 **Konvertieren** des textbasierten Workouts in Zwift's xml-Format und Berechnen der Dauer des Workouts.
