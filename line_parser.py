@@ -6,7 +6,7 @@ COOLDOWN_WARMUP = 2    # syntax: [time_in_seconds, ftp_fraction_start, ftp_fract
 
 re_single_interval = re.compile(r'^\s*([0-9]{1,4}(?:\s*[sSmM][a-zA-Z]*?|:[0-9]{1,2}))[^a-zA-Z0-9]+([0-9]{1,3}\s*%?|[0-9]\.[0-9]*)\s*$')
 re_cooldown_warmup = re.compile(r'^\s*([0-9]{1,4}(?:\s*[sSmM][a-zA-Z]*?|:[0-9]{1,2}))[^a-zA-Z0-9]+([0-9]{1,3}\s*%?|[0-9]\.[0-9]*)\s*-+>*\s*([0-9]{1,3}\s*%?|[0-9]\.[0-9]*)\s*$')
-re_mult = re.compile(r'^\s*([1-9])\s*[xX*]\s*$')
+re_mult = re.compile(r'^\s*([1-9]{1,2})\s*[xX*]\s*$')
 
 # LINES = '10 minuten 40 -80%\n 1 Minute 110% \n 3 Minuten 60 % \n3x {\n3x { 10 Sekunden 200%\n 1:50 100%\n 2 Minuten 40%}\n 7 Minuten 40%}\n5 Minuten 40-20%'.splitlines()
 LINES = '10 minuten 40 -80%\n 1 Minute 110% \n 3 Minuten 60 % \n3x (\n3x ( 3 Minuten 100%\n 3 Minuten 80% )\n 5 Minuten 40%)\n5 Minuten 40-20%'.splitlines()
