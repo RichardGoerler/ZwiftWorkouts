@@ -13,8 +13,8 @@ import lang_eng
 
 EXAMPLE_NAME = ['3 x 3 x 2 Min PFPI', '3 x 3 x 2 min PFPI']
 EXAMPLE_DESCRIPTION = ['3 x 3 x 2 Min PFPI\n"FTP" = 1,15 x FTP', '3 x 3 x 2 min PFPI\n"FTP" = 1,15 x FTP']
-EXAMPLE_TEXT = ['10 minuten 25 -70%\n 1 min 90% \n 5 m 0.6 \n3x (\n3x ( 10 Sekunden 200%\n 1:50 100%\n 2:00 0.4)\n 6 Min 40%)\n2 Minuten 40-20%',
-                '10 minutes 25 -70%\n 1 min 90% \n 5 m 0.6 \n3x (\n3x ( 10 seconds 200%\n 1:50 100%\n 2:00 0.4)\n 6 Min 40%)\n2 Minutes 40-20%']
+EXAMPLE_TEXT = ['10 minuten 25 -70%\n 1 min 90% \n 5 m 0.6 \n3x (\n3x(\n1x (10 Sekunden 200%\n 1:50 100%)\n 2:00 0.4)\n 6 Min 40%)\n2 Minuten 40-20%',
+                '10 minutes 25 -70%\n 1 min 90% \n 5 m 0.6 \n3x (\n3x(\n1x (10 seconds 200%\n 1:50 100%)\n 2:00 0.4)\n 6 Min 40%)\n2 Minutes 40-20%']
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -180,7 +180,8 @@ class GUI:
         if len(self.workout_lines_raw) <= 1:
             messagebox.showerror(title=self.lang.ERROR_TITLE, message=self.lang.ERROR_WORKOUT_EMPTY)
             return
-        workout_lines = self.workout_lines_raw.splitlines()
+        # workout_lines = self.workout_lines_raw.splitlines()
+        workout_lines = line_parser.split_workout_lines(self.workout_lines_raw)
 
         try:
             parsed_lines = line_parser.parse_lines(workout_lines)

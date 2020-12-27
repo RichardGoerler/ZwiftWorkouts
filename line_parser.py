@@ -6,7 +6,7 @@ COOLDOWN_WARMUP = 2    # syntax: [time_in_seconds, ftp_fraction_start, ftp_fract
 
 re_single_interval = re.compile(r'^\s*([0-9]{1,4}(?:\s*[sSmM][a-zA-Z]*?|:[0-9]{1,2}))[^a-zA-Z0-9]+([0-9]{1,3}\s*%?|[0-9]\.[0-9]*)\s*$')
 re_cooldown_warmup = re.compile(r'^\s*([0-9]{1,4}(?:\s*[sSmM][a-zA-Z]*?|:[0-9]{1,2}))[^a-zA-Z0-9]+([0-9]{1,3}\s*%?|[0-9]\.[0-9]*)\s*-+>*\s*([0-9]{1,3}\s*%?|[0-9]\.[0-9]*)\s*$')
-re_mult = re.compile(r'^\s*([1-9]{1,2})\s*[xX*]\s*$')
+re_mult = re.compile(r'^\s*([0-9]{1,2})\s*[xX*]\s*$')
 
 # LINES = '10 minuten 40 -80%\n 1 Minute 110% \n 3 Minuten 60 % \n3x {\n3x { 10 Sekunden 200%\n 1:50 100%\n 2 Minuten 40%}\n 7 Minuten 40%}\n5 Minuten 40-20%'.splitlines()
 LINES = '10 minuten 40 -80%\n 1 Minute 110% \n 3 Minuten 60 % \n3x (\n3x ( 3 Minuten 100%\n 3 Minuten 80% )\n 5 Minuten 40%)\n5 Minuten 40-20%'.splitlines()
@@ -152,7 +152,7 @@ def parse_lines(lines):
                 # print("Syntax error in line {}: {}".format(li, l_interval))
                 # break
 
-            if mult > 1:
+            if mult > 0:
                 append_to.append([MULTIPLIER, mult, []])
                 open_muls += 1
                 append_to = update_append_to(parsed_string, open_muls)
@@ -161,6 +161,18 @@ def parse_lines(lines):
                 append_to.append(interv)
 
     return parsed_string
+
+
+def split_workout_lines(workout_str):
+    ind_brackets = [i for i in range(len(workout_str)) if workout_str[i] in '([{']
+    new_workout_str = ''
+    prev_i = 0
+    for i in ind_brackets:
+        new_workout_str += workout_str[prev_i: i+1]
+        new_workout_str += '\n'
+        prev_i = i+1
+    new_workout_str += workout_str[prev_i:]
+    return new_workout_str.splitlines()
 
 
 if __name__ == '__main__':

@@ -14,18 +14,28 @@ class Parser:    # Just a facade
         self.overall_seconds = 0
 
         def append_to_workout(line_list, mult=1):
-            if mult > 1 and len(line_list) == 2 and line_list[0][0] == line_parser.INTERVAL and line_list[1][0] == line_parser.INTERVAL:
+            if mult > 0 and len(line_list) == 2 and line_list[0][0] == line_parser.INTERVAL and line_list[1][0] == line_parser.INTERVAL:
                 # here we know that we can use a IntervalsT element
                 on_duration = line_list[0][1]
                 off_duration = line_list[1][1]
+                on_power = line_list[0][2]
+                off_power = line_list[1][2]
 
-                interval_el = ET.SubElement(workout_el, 'IntervalsT')
-                interval_el.set('Repeat', str(mult))
-                interval_el.set('OnDuration', str(on_duration))
-                interval_el.set('OffDuration', str(off_duration))
-                interval_el.set('OnPower', str(line_list[0][2]))
-                interval_el.set('OffPower', str(line_list[1][2]))
-                interval_el.set('pace', '0')
+                last_el = workout_el[-1]
+                if last_el.tag == 'IntervalsT' and \
+                            int(last_el.get('OnDuration')) == on_duration and int(last_el.get('OffDuration')) == off_duration and \
+                                    float(last_el.get('OnPower')) == on_power and float(last_el.get('OffPower')) == off_power:
+
+                        last_el.set('Repeat', str(mult + int(last_el.get('Repeat'))))
+
+                else:
+                    interval_el = ET.SubElement(workout_el, 'IntervalsT')
+                    interval_el.set('Repeat', str(mult))
+                    interval_el.set('OnDuration', str(on_duration))
+                    interval_el.set('OffDuration', str(off_duration))
+                    interval_el.set('OnPower', str(on_power))
+                    interval_el.set('OffPower', str(off_power))
+                    interval_el.set('pace', '0')
 
                 self.overall_seconds += mult * (on_duration + off_duration)
             else:
@@ -35,12 +45,19 @@ class Parser:    # Just a facade
                         if line_type == line_parser.MULTIPLIER:
                             append_to_workout(l[2], mult=l[1])
                         elif line_type == line_parser.INTERVAL:
-                            interval_el = ET.SubElement(workout_el, 'SteadyState')
-                            interval_el.set('Duration', str(l[1]))
-                            interval_el.set('Power', str(l[2]))
-                            interval_el.set('pace', '0')
+                            duration = l[1]
+                            power = l[2]
 
-                            self.overall_seconds += l[1]
+                            last_el = workout_el[-1]
+                            if last_el.tag == 'SteadyState' and float(last_el.get('Power')) == power:
+                                last_el.set('Duration', str(duration + int(last_el.get('Duration'))))
+                            else:
+                                interval_el = ET.SubElement(workout_el, 'SteadyState')
+                                interval_el.set('Duration', str(duration))
+                                interval_el.set('Power', str(power))
+                                interval_el.set('pace', '0')
+
+                            self.overall_seconds += duration
                         elif line_type == line_parser.COOLDOWN_WARMUP:
                             power1 = l[2]
                             power2 = l[3]
