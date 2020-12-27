@@ -19,7 +19,7 @@ Falls das Intervall ein Aufwärmen- / Abkühlen-Intervall ist, kann es zwei Inte
 Wiederholung von Intervallen, indem Klammern ```()``` oder ```[]``` oder ```{}``` darum geschrieben werden
  und ein Multiplikator ```3x``` oder ```4X``` oder ```5*```, etc. direkt vor die öffnende Klammer. 
 
-Wiederholungen können verschachtelt sein, wie z.B. ```2x { 3x ( ... ) ... }``` (hier fehlen die notwendigen Zeilenumbrüche).
+Wiederholungen können verschachtelt sein, wie z.B. ```2x { 3x ( ... ```.
 
 ## Funktionen
 **Konvertieren** des textbasierten Workouts in Zwift's xml-Format und Berechnen der Dauer des Workouts.

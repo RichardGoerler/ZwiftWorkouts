@@ -19,7 +19,7 @@ If the interval is a warmup / cooldown interval, it can have two power specifica
 Repeat intervals by putting brackets ```()``` or ```[]``` or ```{}``` around them and
  add a multiplyer ```3x``` or ```4X``` or ```5*```, etc. directly in front of the opening bracket.
 
-Repeats can be nested, like ```2x { 3x ( ... ) ... }``` (here the required line breaks are omitted).
+Repeats can be nested, like ```2x { 3x ( ... ```.
 
 ## Functions
 **Convert** your text-based workout into Zwift's xml format and calculate duration of your workout.
