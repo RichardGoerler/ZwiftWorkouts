@@ -4,7 +4,7 @@
 
 #### Ein Programm zum Erstellen von Zwift-Workouts mit einem intuitiven, textbasierten Editor.
 
-![main_window](https://beachomize.de/zwift_image/WindowGer1.JPG)
+![main_window](https://beachomize.de/zwift_image/WindowGer2.JPG)
 
 ## Syntax
 
