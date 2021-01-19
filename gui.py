@@ -172,7 +172,7 @@ class GUI:
         if len(name) == 0:
             messagebox.showerror(title=self.lang.ERROR_TITLE, message=self.lang.ERROR_NAME_EMPTY)
             return
-        self.filename = name.replace(" ", "_")
+        self.filename = name.replace(" ", "_").replace("/", "_").replace("\\", "_")
 
         description = self.description_entry.get(1.0, 'end-1c')
 
