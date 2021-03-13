@@ -2,19 +2,34 @@ from pathlib import Path
 import os
 import sys
 import tkinter as tk
-from tkinter import font
-from tkinter import messagebox
-from tkinter import filedialog
+from tkinter import font, filedialog, messagebox
+import cv2
+from PIL import ImageGrab, ImageTk, Image
+import numpy as np
+from PyQt5.QtWidgets import QApplication
+from multiprocessing import Process, Pipe
+
+import SnippingMenu
+# import SnippingTool
 
 import line_parser
 import xml_writer
 import lang_ger
 import lang_eng
+import dialog
+import cv_test
 
 EXAMPLE_NAME = ['3 x 3 x 2 Min PFPI', '3 x 3 x 2 min PFPI']
 EXAMPLE_DESCRIPTION = ['3 x 3 x 2 Min PFPI\n"FTP" = 1,15 x FTP', '3 x 3 x 2 min PFPI\n"FTP" = 1,15 x FTP']
 EXAMPLE_TEXT = ['10 minuten 25 -70%\n 1 min 90% \n 5 m 0.6 \n3x (\n3x(\n1x (10 Sekunden 200%\n 1:50 100%)\n 2:00 0.4)\n 6 Min 40%)\n2 Minuten 40-20%',
                 '10 minutes 25 -70%\n 1 min 90% \n 5 m 0.6 \n3x (\n3x(\n1x (10 seconds 200%\n 1:50 100%)\n 2:00 0.4)\n 6 Min 40%)\n2 Minutes 40-20%']
+
+
+def snip():
+    app = QApplication(sys.argv)
+    # snippingTool = SnippingTool.SnippingWidget()
+    mainMenu = SnippingMenu.Menu()
+    sys.exit(app.exec_())
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -25,6 +40,99 @@ def resource_path(relative_path):
         base_path = Path(".")
 
     return base_path / relative_path
+
+
+class ImageWindow(dialog.Dialog):
+    def __init__(self, parent, gui, im_array, title=lang_ger.IMAGE_TITLE):
+        self.im_array = im_array
+        self.imorg = Image.fromarray(cv2.cvtColor(im_array, cv2.COLOR_BGR2RGB))
+        self.minutes = 0
+        self.seconds = 0
+        self.power = 0
+        self.power_multiple_of = 5
+        super().__init__(parent, gui, title=title)
+
+    def header(self, master):
+        # imorg = Image.open("temp.png")
+        # imorg = Image.fromarray(im_array)
+        sc_fac = 0.5
+        wid = self.gui.screenwidth * sc_fac
+        aspect = self.imorg.height / self.imorg.width
+        hei = aspect * wid
+        imobj = self.imorg.resize((int(wid), int(hei)), Image.ANTIALIAS)
+        self.im_tk = ImageTk.PhotoImage(imobj)
+        self.header_image_label = tk.Label(master, image=self.im_tk, bg="#EDEEF3")
+        self.header_image_label.pack()
+        
+    def body(self, master):
+        tk.Label(master, text=self.gui.lang.SNIP_GREEN_TEXT, fg='#00FF00', bg="#EDEEF3", font=self.gui.default_font).grid(row=0, column=0, columnspan=4)
+        tk.Label(master, text=self.gui.lang.SNIP_MINUTES_TEXT, bg="#EDEEF3", font=self.gui.default_font).grid(row=1, column=1)
+        tk.Label(master, text=self.gui.lang.SNIP_SECONDS_TEXT, bg="#EDEEF3", font=self.gui.default_font).grid(row=1, column=3)
+        self.minutes_entry = tk.Entry(master, width=3, bg="#EDEEF3", font=self.gui.default_font)
+        self.minutes_entry.delete(0, 'end')
+        self.minutes_entry.insert(0, '0')
+        self.minutes_entry.grid(row=1, column=0)
+        self.seconds_entry = tk.Entry(master, width=3, bg="#EDEEF3", font=self.gui.default_font)
+        self.seconds_entry.delete(0, 'end')
+        self.seconds_entry.insert(0, '0')
+        self.seconds_entry.grid(row=1, column=2)
+        
+        tk.Label(master, text=self.gui.lang.SNIP_CYAN_TEXT, fg='#00FFFF', bg="#EDEEF3", font=self.gui.default_font).grid(row=2, column=0, columnspan=4)
+        tk.Label(master, text=self.gui.lang.SNIP_FTP_TEXT, bg="#EDEEF3", font=self.gui.default_font).grid(row=3, column=2)
+        self.power_entry = tk.Entry(master, width=3, bg="#EDEEF3", font=self.gui.default_font)
+        self.power_entry.delete(0, 'end')
+        self.power_entry.insert(0, '0')
+        self.power_entry.grid(row=3, column=1)
+
+        tk.Label(master, text='', bg="#EDEEF3", font=self.gui.bold_font).grid(row=4, column=0, columnspan=4)
+
+        tk.Label(master, text=self.gui.lang.SNIP_ADVANCED_TEXT, bg="#EDEEF3", font=self.gui.bold_font).grid(row=5, column=0, columnspan=4)
+        tk.Label(master, text=self.gui.lang.SNIP_POWER_MULTIPLE_TEXT, bg="#EDEEF3", font=self.gui.default_font).grid(row=6, column=0, columnspan=3)
+        self.multiple_entry = tk.Entry(master, width=2, bg="#EDEEF3", font=self.gui.default_font)
+        self.multiple_entry.delete(0, 'end')
+        self.multiple_entry.insert(0, '5')
+        self.multiple_entry.grid(row=6, column=3)
+
+        self.time_correction_check_var = tk.IntVar()
+        self.time_correction_check_var.set(1)
+        tk.Checkbutton(master, text=self.gui.lang.SNIP_TIME_CORRECTION_TEXT, variable=self.time_correction_check_var, bg="#EDEEF3", font=self.gui.default_font).grid(row=7, column=0, columnspan=4)
+        
+    def validate(self):
+        try:
+            self.minutes = abs(int(self.minutes_entry.get()))
+        except ValueError:
+            self.minutes_entry.focus_set()
+            messagebox.showerror(title=self.gui.lang.SNIP_ENTRY_ERROR_TITLE, message=self.gui.lang.SNIP_ENTRY_ERROR_MESSAGE.format(self.gui.lang.SNIP_MINUTES_TEXT))
+            return False
+        try:
+            self.seconds = abs(int(self.seconds_entry.get()))
+        except ValueError:
+            self.seconds_entry.focus_set()
+            messagebox.showerror(title=self.gui.lang.SNIP_ENTRY_ERROR_TITLE, message=self.gui.lang.SNIP_ENTRY_ERROR_MESSAGE.format(self.gui.lang.SNIP_SECONDS_TEXT))
+            return False
+        try:
+            self.power = abs(int(self.power_entry.get()))
+        except ValueError:
+            self.power_entry.focus_set()
+            messagebox.showerror(title=self.gui.lang.SNIP_ENTRY_ERROR_TITLE, message=self.gui.lang.SNIP_ENTRY_ERROR_MESSAGE.format(self.gui.lang.SNIP_FTP_TEXT))
+            return False
+        try:
+            self.power_multiple_of = abs(int(self.multiple_entry.get()))
+        except ValueError:
+            self.multiple_entry.focus_set()
+            messagebox.showerror(title=self.gui.lang.SNIP_ENTRY_ERROR_TITLE, message=self.gui.lang.SNIP_ENTRY_ERROR_MESSAGE.format(self.gui.lang.SNIP_POWER_MULTIPLE_TEXT))
+            return False
+        if self.power_multiple_of == 0:
+            self.power_multiple_of = 1
+        return True
+
+    def apply(self):
+        t_max = self.minutes*60 + self.seconds
+        time_autocorrect = self.time_correction_check_var.get()
+        workout_str = cv_test.detect_workout(self.im_array, t_max=t_max, p_max=self.power, power_multiple_of=self.power_multiple_of, time_autocorrect=time_autocorrect)
+        self.gui.text.delete(1.0, "end")
+        self.gui.text.insert(1.0, workout_str)
+
 
 class GUI:
     def __init__(self):
@@ -105,9 +213,12 @@ class GUI:
         self.widgets_with_text[-1].grid(row=0, column=1, padx=int(self.default_size / 2), pady=self.default_size)
         tk.Button(self.button_frame, text='', bg=self.bg, image=self.open_icon, font=self.default_font,
                   command=self.open_file).grid(row=0, column=2, padx=int(self.default_size / 2), pady=self.default_size, sticky=tk.E)
+        self.widgets_with_text.append(tk.Button(self.button_frame, text=self.lang.BUTTON_SNIP, bg=self.bg, font=self.default_font, command=self.snip_image))
+        self.widget_texts.append('self.lang.BUTTON_SNIP')
+        self.widgets_with_text[-1].grid(row=1, column=0, padx=int(self.default_size / 2), pady=int(self.default_size / 2))
         self.widgets_with_text.append(tk.Button(self.button_frame, text=self.lang.BUTTON_EXAMPLE, bg=self.bg, font=self.default_font, command=self.load_example))
         self.widget_texts.append('self.lang.BUTTON_EXAMPLE')
-        self.widgets_with_text[-1].grid(row=1, column=0, columnspan=2, padx=int(self.default_size / 2), pady=int(self.default_size / 2))
+        self.widgets_with_text[-1].grid(row=1, column=1, padx=int(self.default_size / 2), pady=int(self.default_size / 2))
         self.widgets_with_text.append(tk.Button(self.button_frame, text=self.lang.BUTTON_WORKOUTS_FOLDER, bg=self.bg, font=self.default_font, command=self.open_workouts))
         self.widget_texts.append('self.lang.BUTTON_WORKOUTS_FOLDER')
         self.widgets_with_text[-1].grid(row=2, column=0, padx=int(self.default_size / 2), pady=int(self.default_size / 2))
@@ -130,6 +241,25 @@ class GUI:
         self.workout_lines_raw = ''
 
         tk.mainloop()
+
+    def snip_image(self):
+        impath = Path('temp.png')
+        impath.unlink(missing_ok=True)
+        if messagebox.showinfo(title=self.lang.SNIP_BEFORE_TITLE, message=self.lang.SNIP_BEFORE_MESSAGE):
+            # self.root.iconify()
+            p = Process(target=snip)
+            p.start()
+            p.join()
+            # self.root.deiconify()
+            if impath.exists():
+                im = cv2.imread(str(impath))
+                if im is not None:
+                    try:
+                        im_rects = cv_test.detect_workout(im)
+                    except Exception as e:
+                        messagebox.showerror(title=self.lang.SNIP_DETECTION_ERROR_TITLE, message=self.lang.SNIP_DETECTION_ERROR_MESSAGGE)
+                        raise
+                    imwin = ImageWindow(self.root, self, im_rects)
 
     def toggle_language(self):
         self.lang_index = (self.lang_index + 1) % len(self.languages)
@@ -236,6 +366,11 @@ class GUI:
         self.name_entry.insert(0, EXAMPLE_NAME[self.lang_index])
         self.description_entry.delete(1.0, "end")
         self.description_entry.insert(1.0, EXAMPLE_DESCRIPTION[self.lang_index])
+
+    def dims_by_scale(self, scale):
+        if hasattr(scale, '__iter__'):
+            return [int(el * sc) for el, sc in zip(self.screen_resolution, scale)]
+        return [int(el * scale) for el in self.screen_resolution]
 
 
 if __name__ == '__main__':
